@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,9 +38,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'rest_framework',
+    'djoser',
+    'api.apps.ApiConfig',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -50,6 +58,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'django_insta.urls'
+
+# cors React側からのアクセスを許可する
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:3000",
+]
+
 
 TEMPLATES = [
     {
@@ -68,6 +82,27 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'django_insta.wsgi.application'
+
+# 色々な設定を追加することができるもの
+# プロジェクト全体に制限がかかる、特定のviewだけは認証なしにしたい場合は、特定のところで上書きして対応する
+REST_FRAMEWORK = {
+    # viewを特定のユーザーだけ見せるように設定 (今回はログインしているユーザーだけ見せる (jwtの認証を通っている)
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    # 認証をどのようなものにするかを設定 (今回は JWT認証を使う)
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ]
+}
+
+# サードパーティの  simplejwtを使うための設定
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
+    # 有効期限
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+}
+
 
 
 # Database
@@ -103,9 +138,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ja'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tokyo'
 
 USE_I18N = True
 
@@ -113,8 +148,14 @@ USE_L10N = True
 
 USE_TZ = True
 
+# 今回はEmailを使うなどカスタマイズしているので、それを使うことをここで設定する
+AUTH_USER_MODEL = 'api.User'
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
